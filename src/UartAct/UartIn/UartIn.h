@@ -81,6 +81,7 @@ protected:
     static void CleanInvalidateCache(uint32_t addr, uint32_t len);
 
     UART_HandleTypeDef &m_hal;
+    Hsmn m_manager;
     Hsmn m_client;
     Fifo *m_fifo;
     bool m_dataRecv;

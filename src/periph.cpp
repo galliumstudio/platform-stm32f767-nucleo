@@ -49,6 +49,7 @@ TimHalMap Periph::m_timHalMap(m_timHalStor, ARRAY_COUNT(m_timHalStor), TimHal(NU
 
 TIM_HandleTypeDef Periph::m_tim1Hal;
 TIM_HandleTypeDef Periph::m_tim2Hal;
+TIM_HandleTypeDef Periph::m_tim3Hal;
 // Add more HAL handles here.
 
 // Setup common peripherals for normal power mode.
@@ -57,33 +58,34 @@ TIM_HandleTypeDef Periph::m_tim2Hal;
 //          RX PD.9 DMA1 Request 1 Channel 4
 // USART6 - TX PG.14 DMA2 Request 6 Channel 5
 //          RX PG.9 DMA2 Request 1 Channel 5
-// LED0 - PE.8 PWM TIM1 Channel 1
+// LED0 - PB.0 PWM TIM3 Channel 3 (or TIM1 CH2N)
 //
 // TIM1 configuration:
 // APB1CLK = HCLK -> TIM1CLK = HCLK = SystemCoreClock (See "clock tree" and "timer clock" in ref manual.)
-#define TIM1CLK             (SystemCoreClock)   // 80MHz
-#define TIM1_COUNTER_CLK    (20000000)          // 20MHz
-#define TIM1_PWM_FREQ       (20000)             // 20kHz
+#define TIM3CLK             (SystemCoreClock)   // 216MHz
+#define TIM3_COUNTER_CLK    (20000000)          // 20MHz
+#define TIM3_PWM_FREQ       (20000)             // 20kHz
 
 void Periph::SetupNormal() {
+    __GPIOB_CLK_ENABLE();
     __GPIOD_CLK_ENABLE();
     __GPIOG_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
-    __HAL_RCC_TIM1_CLK_ENABLE();
+    __HAL_RCC_TIM3_CLK_ENABLE();
 
-    // Initialize TIM1 for PWM (shared by LED0...).
+    // Initialize TIM3 for PWM (shared by LED0...).
     HAL_StatusTypeDef status;
-    m_tim1Hal.Instance = TIM1;
-    m_tim1Hal.Init.Prescaler = (TIM1CLK / TIM1_COUNTER_CLK) - 1;
-    m_tim1Hal.Init.Period = (TIM1_COUNTER_CLK / TIM1_PWM_FREQ) - 1;
-    m_tim1Hal.Init.ClockDivision = 0;
-    m_tim1Hal.Init.CounterMode = TIM_COUNTERMODE_UP;
-    m_tim1Hal.Init.RepetitionCounter = 0;
-    status = HAL_TIM_PWM_Init(&m_tim1Hal);
+    m_tim3Hal.Instance = TIM3;
+    m_tim3Hal.Init.Prescaler = (TIM3CLK / TIM3_COUNTER_CLK) - 1;
+    m_tim3Hal.Init.Period = (TIM3_COUNTER_CLK / TIM3_PWM_FREQ) - 1;
+    m_tim3Hal.Init.ClockDivision = 0;
+    m_tim3Hal.Init.CounterMode = TIM_COUNTERMODE_UP;
+    m_tim3Hal.Init.RepetitionCounter = 0;
+    status = HAL_TIM_PWM_Init(&m_tim3Hal);
     FW_ASSERT(status == HAL_OK);
     // Add timHandle to map.
-    SetHal(TIM1, &m_tim1Hal);
+    SetHal(TIM3, &m_tim3Hal);
 }
 
 // Setup common peripherals for low power mode.
@@ -94,13 +96,13 @@ void Periph::SetupLowPower() {
 // Reset common peripherals to startup state.
 void Periph::Reset() {
     HAL_TIM_PWM_DeInit(&m_tim1Hal);
-    __HAL_RCC_TIM1_CLK_DISABLE();
-    __HAL_RCC_DMA1_CLK_DISABLE();
+    __HAL_RCC_TIM3_CLK_DISABLE();
     __HAL_RCC_DMA2_CLK_DISABLE();
-    __GPIOD_CLK_DISABLE();
+    __HAL_RCC_DMA1_CLK_DISABLE();
     __GPIOG_CLK_DISABLE();
+    __GPIOD_CLK_DISABLE();
+    __GPIOB_CLK_DISABLE();
     // TBD.
 }
-
 
 } // namespace APP

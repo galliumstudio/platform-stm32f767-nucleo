@@ -116,11 +116,10 @@ void UartIn::CleanInvalidateCache(uint32_t addr, uint32_t len) {
 }
 
 UartIn::UartIn(Hsmn hsmn, char const *name, UART_HandleTypeDef &hal) :
-    Region((QStateHandler)&UartIn::InitialPseudoState, hsmn, name,
-           timerEvtName, ARRAY_COUNT(timerEvtName),
-           internalEvtName, ARRAY_COUNT(internalEvtName),
-           interfaceEvtName, ARRAY_COUNT(interfaceEvtName)),
-    m_hal(hal), m_client(HSM_UNDEF), m_fifo(NULL), m_dataRecv(false), m_activeTimer(hsmn, ACTIVE_TIMER) {}
+    Region((QStateHandler)&UartIn::InitialPseudoState, hsmn, name),
+    m_hal(hal), m_manager(HSM_UNDEF), m_client(HSM_UNDEF), m_fifo(NULL), m_dataRecv(false), m_activeTimer(hsmn, ACTIVE_TIMER) {
+    SET_EVT_NAME(UART_IN);
+}
 
 QState UartIn::InitialPseudoState(UartIn * const me, QEvt const * const e) {
     (void)e;
@@ -184,6 +183,7 @@ QState UartIn::Stopped(UartIn * const me, QEvt const * const e) {
         case UART_IN_START_REQ: {
             EVENT(e);
             UartInStartReq const &req = static_cast<UartInStartReq const &>(*e);
+            me->m_manager = req.GetFrom();
             me->m_fifo = req.GetFifo();
             FW_ASSERT(me->m_fifo);
             me->m_fifo->Reset();

@@ -50,11 +50,11 @@ namespace FW {
 
 // Storage size must >= HSMN_BIT_SIZE.
 typedef uint8_t Hsmn;
+Q_ASSERT_COMPILE((HSMN_BIT_SIZE) <= (8 * sizeof(Hsmn)));
 
 enum {
     HSM_UNDEF = 0,          // HSM number 0 is reserved. Must not be used.
-    HSM_START,              // This is where HSM number in application starts.
-    MAX_HSM_COUNT = 32      // Maximum number of HSM's including HSM_UNDEF.
+    MAX_HSM_COUNT = 64      // Maximum number of HSM's including HSM_UNDEF.
                             // That is valid HSM number is from 1 to MAX_HSM_COUNT - 1.
 };
 
@@ -86,6 +86,7 @@ typedef char const * const *EvtName;
 typedef uint16_t Sequence;
 
 enum {
+    CTRLC = 0x03,
     BS  = 0x08,
     LF  = 0x0A,
     CR  = 0x0D,

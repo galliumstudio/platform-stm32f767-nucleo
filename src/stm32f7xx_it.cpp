@@ -73,6 +73,7 @@
 #include "qpcpp.h"
 #include "app_hsmn.h"
 #include "UartAct.h"
+#include "GpioIn.h"
 #include "fw_log.h"
 
 /* USER CODE BEGIN 0 */
@@ -154,7 +155,7 @@ extern "C" void DMA1_Stream3_IRQHandler(void) {
     QXK_ISR_ENTRY();
     UART_HandleTypeDef *hal = UartAct::GetHal(UART3_ACT);
     HAL_DMA_IRQHandler(hal->hdmatx);
-    QXK_ISR_ENTRY();
+    QXK_ISR_EXIT();
 }
 
 // UART3 RX DMA
@@ -163,7 +164,7 @@ extern "C" void DMA1_Stream1_IRQHandler(void) {
     QXK_ISR_ENTRY();
     UART_HandleTypeDef *hal = UartAct::GetHal(UART3_ACT);
     HAL_DMA_IRQHandler(hal->hdmarx);
-    QXK_ISR_ENTRY();
+    QXK_ISR_EXIT();
 }
 
 // UART3 RX
@@ -181,7 +182,7 @@ extern "C" void DMA2_Stream6_IRQHandler(void) {
     QXK_ISR_ENTRY();
     UART_HandleTypeDef *hal = UartAct::GetHal(UART6_ACT);
     HAL_DMA_IRQHandler(hal->hdmatx);
-    QXK_ISR_ENTRY();
+    QXK_ISR_EXIT();
 }
 
 // UART6 RX DMA
@@ -190,7 +191,7 @@ extern "C" void DMA2_Stream1_IRQHandler(void) {
     QXK_ISR_ENTRY();
     UART_HandleTypeDef *hal = UartAct::GetHal(UART6_ACT);
     HAL_DMA_IRQHandler(hal->hdmarx);
-    QXK_ISR_ENTRY();
+    QXK_ISR_EXIT();
 }
 
 // UART6 RX
@@ -202,5 +203,63 @@ extern "C" void USART6_IRQHandler(void)
     QXK_ISR_EXIT();
 }
 
+// GPIO IN
+// Must be declared as extern "C" in header.
+extern "C" void EXTI15_10_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+    QXK_ISR_EXIT();
+}
+extern "C" void EXTI9_5_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
+    QXK_ISR_EXIT();
+}
+extern "C" void EXTI4_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+    QXK_ISR_EXIT();
+}
+extern "C" void EXTI3_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+    QXK_ISR_EXIT();
+}
+extern "C" void EXTI2_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+    QXK_ISR_EXIT();
+}
+extern "C" void EXTI1_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+    QXK_ISR_EXIT();
+}
+// User Button (PA.0)
+extern "C" void EXTI0_IRQHandler(void)
+{
+    QXK_ISR_ENTRY();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+    QXK_ISR_EXIT();
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    GpioIn::GpioIntCallback(pin);
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

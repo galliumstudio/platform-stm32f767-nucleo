@@ -49,8 +49,8 @@ using namespace QP;
 
 namespace FW {
 
-// The timer signal does not matter here, since the hsmn is undefined.
-// The event will be discarded by Active::dispatch().
+// The timer signal is set to Q_USER_SIG which is associated with an undefined HSM.
+// It will be discarded by Active::dispatch().
 // The signal is set to Q_USER_SIG in case the QTimeEvt constructor asserts (signal >= Q_USER_SIG).
 Timer const CANCELED_TIMER(HSM_UNDEF, Q_USER_SIG);
 
@@ -62,7 +62,7 @@ Timer::Timer(Hsmn hsmn, QP::QSignal signal) :
 
 void Timer::Start(uint32_t timeoutMs, Type type) {
     QTimeEvtCtr timeoutTick = ROUND_UP_DIV(timeoutMs, BSP_MSEC_PER_TICK);
-    Active *act = Fw::GetContainer(m_hsmn);
+    QActive *act = Fw::GetContainer(m_hsmn);
     FW_ASSERT(act && (type < INVALID));
     if (type == ONCE) {
         QTimeEvt::postIn(act, timeoutTick);
@@ -76,12 +76,12 @@ void Timer::Stop() {
     // a previous timeout event might still be in event queue and must be removed.
     // In any cases we need to purge residue timer events in event queue.
     QTimeEvt::disarm();
-    Active *act = Fw::GetContainer(m_hsmn);
+    QActive *act = Fw::GetContainer(m_hsmn);
     FW_ASSERT(act);
     QEQueue *eQueue = &act->m_eQueue;
     FW_ASSERT(eQueue);
-    uint16_t queueCount = 0;
-    QEvt const **queueStor = act->GetEvtQueueStor(&queueCount);
+    QEQueueCtr queueCount = 0;
+    QEvt const **queueStor = eQueue->getStor(&queueCount);
     FW_ASSERT(queueStor && queueCount);
     // Critical section must support nesting.
     QF_CRIT_STAT_TYPE crit;
@@ -111,7 +111,7 @@ void Timer::Stop() {
         // If a match is found, it is replaced with CANCELED_TIMER regardless to whether
         // it is actually being used of not.
         if (eQueue->getNFree() < queueCount) {
-            for (uint16_t i = 0; i < queueCount; i++) {
+            for (QEQueueCtr i = 0; i < queueCount; i++) {
                 if (IsMatch(queueStor[i])) {
                     // Matched event must be a timer event and static.
                     FW_ASSERT(IS_TIMER_EVT(queueStor[i]->sig) && QF_EVT_POOL_ID_(queueStor[i]) == 0);

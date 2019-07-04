@@ -83,16 +83,16 @@
 #include "fw_assert.h"
 #include "Console.h"
 #include "System.h"
+#include "GpioInAct.h"
 #include "CompositeAct.h"
-#include "CompositeActInterface.h"
 #include "SimpleAct.h"
-#include "SimpleActInterface.h"
+#include "Demo.h"
+#include "GpioOutAct.h"
 #include "UartAct.h"
-#include "UartActInterface.h"
+
 #include "SystemInterface.h"
 #include "ConsoleInterface.h"
 #include "ConsoleCmd.h"
-#include "SystemCmd.h"
 
 FW_DEFINE_THIS_FILE("main.cpp")
 
@@ -100,10 +100,6 @@ using namespace FW;
 using namespace APP;
 
 /** @addtogroup STM32F7xx_HAL_Examples
-  * @{
-  */
-
-/** @addtogroup LTDC_Display_1Layer
   * @{
   */
 
@@ -119,6 +115,9 @@ static Console consoleUart3(CONSOLE_UART3, "CONSOLE_UART3", "CMD_INPUT_UART3", "
 static Console consoleUart6(CONSOLE_UART6, "CONSOLE_UART6", "CMD_INPUT_UART6", "CMD_PARSER_UART6");
 static CompositeAct compositeAct;
 static SimpleAct simpleAct;
+static Demo demo;
+static GpioOutAct gpioOutAct;
+static GpioInAct gpioInAct;
 static UartAct uartAct3(UART3_ACT, "UART3_ACT", "UART3_IN", "UART3_OUT");
 static UartAct uartAct6(UART6_ACT, "UART6_ACT", "UART6_IN", "UART6_OUT");
 
@@ -148,16 +147,9 @@ int main(void)
 
     // Initialize QP, framework and BSP (including HAL).
     Fw::Init();
-
     // Configure log settings.
-    Log::SetVerbosity(5);
+    Log::SetVerbosity(4);
     Log::OnAll();
-    //Log::Off(SYSTEM);
-    //Log::Off(SAMPLE_ACT);
-    //Log::Off(SAMPLE_REG0);
-    //Log::Off(SAMPLE_REG1);
-    //Log::Off(SAMPLE_REG2);
-    //Log::Off(SAMPLE_REG3);
     Log::Off(UART3_IN);
     Log::Off(UART6_IN);
     Log::Off(UART3_OUT);
@@ -172,6 +164,9 @@ int main(void)
     // Start active objects.
     compositeAct.Start(PRIO_COMPOSITE_ACT);
     simpleAct.Start(PRIO_SIMPLE_ACT);
+    demo.Start(PRIO_DEMO);
+    gpioOutAct.Start(PRIO_GPIO_OUT_ACT);
+    gpioInAct.Start(PRIO_GPIO_IN_ACT);
     uartAct3.Start(PRIO_UART3_ACT);
     uartAct6.Start(PRIO_UART6_ACT);
     consoleUart3.Start(PRIO_CONSOLE_UART3);
@@ -180,10 +175,10 @@ int main(void)
 
     // Kick off the topmost active objects.
     Evt *evt;
-    evt = new ConsoleStartReq(CONSOLE_UART3, HSM_UNDEF, 0, ConsoleCmd, UART3_ACT, false);
+    evt = new ConsoleStartReq(CONSOLE_UART3, HSM_UNDEF, 0, ConsoleCmd, UART3_ACT, true);
     Fw::Post(evt);
-    evt = new ConsoleStartReq(CONSOLE_UART6, HSM_UNDEF, 0, ConsoleCmd, UART6_ACT, true);
-    Fw::Post(evt);
+    //evt = new ConsoleStartReq(CONSOLE_UART6, HSM_UNDEF, 0, ConsoleCmd, UART6_ACT, false);
+    //Fw::Post(evt);
     evt = new SystemStartReq(SYSTEM, HSM_UNDEF, 0);
     Fw::Post(evt);
     return QP::QF::run();
